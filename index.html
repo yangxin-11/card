@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>知识卡片生成器 | Édition Spéciale</title>
+    <link href="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://lf6-cdn-tos.bytecdntp.com/cdn/expire-100-M/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* 极简主义风格变量 */
+            --minimalist-bg: #ffffff;
+            --minimalist-text: #333333;
+            --minimalist-accent: #999999;
+            --minimalist-border: #e5e5e5;
+            
+            /* 优雅复古风格变量 */
+            --vintage-bg: #f8f3e6;
+            --vintage-text: #534741;
+            --vintage-accent: #a06a50;
+            --vintage-border: #d2bba0;
+        }
+        
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #f9f9f9;
+        }
+        
+        .container {
+            max-width: 440px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            opacity: 0;
+            transition: opacity 0.8s ease;
+        }
+        
+        .card.show {
+            opacity: 1;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        /* 极简主义风格 */
+        .card-minimalist {
+            background-color: var(--minimalist-bg);
+            color: var(--minimalist-text);
+            border: 1px solid var(--minimalist-border);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            font-family: 'Noto Sans SC', sans-serif;
+        }
+        
+        .card-minimalist .title {
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        
+        .card-minimalist .subtitle {
+            font-weight: 300;
+            letter-spacing: 0.5px;
+        }
+        
+        .card-minimalist .quote {
+            border-left: 2px solid var(--minimalist-accent);
+        }
+        
+        .card-minimalist .point-item {
+            position: relative;
+            padding-left: 1.5rem;
+        }
+        
+        .card-minimalist .point-item:before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0.75rem;
+            width: 4px;
+            height: 4px;
+            background-color: var(--minimalist-text);
+        }
+        
+        .card-minimalist .editor-note {
+            background-color: rgba(0, 0, 0, 0.02);
+            border-radius: 2px;
+        }
+        
+        /* 优雅复古风格 */
+        .card-vintage {
+            background-color: var(--vintage-bg);
+            color: var(--vintage-text);
+            border: 1px solid var(--vintage-border);
+            box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.1);
+            font-family: 'Noto Serif SC', serif;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23bca68d' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
+        }
+        
+        .card-vintage .title {
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        
+        .card-vintage .subtitle {
+            font-weight: 500;
+            font-style: italic;
+        }
+        
+        .card-vintage .date {
+            font-family: 'Times New Roman', serif;
+        }
+        
+        .card-vintage .quote {
+            border-left: 3px double var(--vintage-accent);
+            background-color: rgba(160, 106, 80, 0.05);
+        }
+        
+        .card-vintage .point-item {
+            position: relative;
+            padding-left: 1.75rem;
+        }
+        
+        .card-vintage .point-item:before {
+            content: "❧";
+            position: absolute;
+            left: 0;
+            top: 0;
+            color: var(--vintage-accent);
+            font-size: 0.9rem;
+        }
+        
+        .card-vintage .editor-note {
+            background-color: rgba(160, 106, 80, 0.07);
+            border: 1px dashed var(--vintage-border);
+            border-radius: 0;
+        }
+        
+        .card-vintage .decorative-line {
+            height: 1px;
+            background: linear-gradient(to right, transparent, var(--vintage-accent), transparent);
+        }
+        
+        /* 输入表单样式 */
+        textarea, input[type="text"] {
+            transition: border-color 0.3s ease;
+        }
+        
+        textarea:focus, input[type="text"]:focus {
+            outline: none;
+            border-color: #a06a50;
+            box-shadow: 0 0 0 3px rgba(160, 106, 80, 0.1);
+        }
+        
+        .style-btn {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .style-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .style-btn.active {
+            border-color: #a06a50;
+            box-shadow: 0 0 0 2px rgba(160, 106, 80, 0.2);
+        }
+        
+        button {
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="py-8">
+    <div class="container px-4">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold mb-2 text-center">知识卡片生成器</h1>
+            <p class="text-center text-gray-600">Édition Spéciale de la Connaissance</p>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">卡片内容</h2>
+            
+            <div class="form-group">
+                <label class="block text-sm font-medium text-gray-700 mb-1">标题</label>
+                <input type="text" id="title" class="w-full border rounded-md px-3 py-2" placeholder="输入标题...">
+            </div>
+            
+            <div class="form-group">
+                <label class="block text-sm font-medium text-gray-700 mb-1">副标题</label>
+                <input type="text" id="subtitle" class="w-full border rounded-md px-3 py-2" placeholder="输入副标题...">
+            </div>
+            
+            <div class="form-group">
+                <label class="block text-sm font-medium text-gray-700 mb-1">引用内容</label>
+                <textarea id="quote" class="w-full border rounded-md px-3 py-2" rows="3" placeholder="输入引用内容..."></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label class="block text-sm font-medium text-gray-700 mb-1">核心要点（每行一个要点）</label>
+                <textarea id="points" class="w-full border rounded-md px-3 py-2" rows="5" placeholder="输入核心要点，每行一个..."></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label class="block text-sm font-medium text-gray-700 mb-1">编辑笔记（小贴士）</label>
+                <textarea id="notes" class="w-full border rounded-md px-3 py-2" rows="3" placeholder="输入编辑笔记..."></textarea>
+            </div>
+            
+            <h2 class="text-xl font-semibold mb-4 mt-6">选择风格</h2>
+            
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div id="minimalist-btn" class="style-btn border rounded-md p-4 text-center cursor-pointer active">
+                    <div class="mb-2 text-gray-400"><i class="fas fa-minus"></i></div>
+                    <h3 class="font-medium">极简主义</h3>
+                    <p class="text-xs text-gray-500">Minimalist</p>
+                </div>
+                <div id="vintage-btn" class="style-btn border rounded-md p-4 text-center cursor-pointer">
+                    <div class="mb-2 text-gray-400"><i class="fas fa-feather-alt"></i></div>
+                    <h3 class="font-medium">优雅复古</h3>
+                    <p class="text-xs text-gray-500">Elegant Vintage</p>
+                </div>
+            </div>
+            
+            <button id="generate-btn" class="w-full bg-black text-white py-3 rounded-md font-medium">生成卡片</button>
+        </div>
+
+        <!-- 卡片预览区域 -->
+        <div id="card-preview" class="mb-8 hidden">
+            <!-- 极简主义卡片 -->
+            <div id="minimalist-card" class="card card-minimalist rounded-lg overflow-hidden">
+                <div class="p-8">
+                    <div class="flex justify-between items-center mb-6">
+                        <p class="text-xs uppercase tracking-wider text-gray-500" id="minimalist-date"></p>
+                        <p class="text-xs text-gray-400">No. 01</p>
+                    </div>
+                    
+                    <h1 class="title text-2xl mb-2" id="minimalist-title"></h1>
+                    <p class="subtitle text-sm mb-6 text-gray-600" id="minimalist-subtitle"></p>
+                    
+                    <div class="quote pl-4 py-2 mb-6 italic text-gray-700" id="minimalist-quote"></div>
+                    
+                    <div class="mb-8">
+                        <p class="uppercase text-xs tracking-wider mb-3">核心要点</p>
+                        <div class="space-y-3" id="minimalist-points"></div>
+                    </div>
+                    
+                    <div class="editor-note p-4 text-sm text-gray-700">
+                        <p class="uppercase text-xs tracking-wider mb-2">编辑笔记</p>
+                        <p id="minimalist-notes"></p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 优雅复古卡片 -->
+            <div id="vintage-card" class="card card-vintage rounded-lg overflow-hidden hidden">
+                <div class="p-8">
+                    <div class="flex justify-center mb-2">
+                        <p class="date text-sm italic" id="vintage-date"></p>
+                    </div>
+                    
+                    <div class="decorative-line mb-6"></div>
+                    
+                    <h1 class="title text-center text-2xl mb-2" id="vintage-title"></h1>
+                    <p class="subtitle text-center text-sm mb-6" id="vintage-subtitle"></p>
+                    
+                    <div class="quote pl-4 py-3 mb-6 italic" id="vintage-quote"></div>
+                    
+                    <div class="mb-8">
+                        <p class="text-center mb-4"><span class="px-3 py-1 border-b border-vintage-accent">POINTS CLÉS</span></p>
+                        <div class="space-y-3 mt-4" id="vintage-points"></div>
+                    </div>
+                    
+                    <div class="editor-note p-4 text-sm">
+                        <p class="text-center text-xs uppercase mb-3">Notes de l'éditeur</p>
+                        <p id="vintage-notes"></p>
+                    </div>
+                    
+                    <div class="decorative-line mt-6"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 获取DOM元素
+        const minimalistBtn = document.getElementById('minimalist-btn');
+        const vintageBtn = document.getElementById('vintage-btn');
+        const generateBtn = document.getElementById('generate-btn');
+        const cardPreview = document.getElementById('card-preview');
+        const minimalistCard = document.getElementById('minimalist-card');
+        const vintageCard = document.getElementById('vintage-card');
+        
+        // 当前选中风格
+        let currentStyle = 'minimalist';
+        
+        // 风格按钮点击事件
+        minimalistBtn.addEventListener('click', () => {
+            minimalistBtn.classList.add('active');
+            vintageBtn.classList.remove('active');
+            currentStyle = 'minimalist';
+        });
+        
+        vintageBtn.addEventListener('click', () => {
+            vintageBtn.classList.add('active');
+            minimalistBtn.classList.remove('active');
+            currentStyle = 'vintage';
+        });
+        
+        // 生成卡片点击事件
+        generateBtn.addEventListener('click', () => {
+            // 获取输入内容
+            const title = document.getElementById('title').value || '知识卡片标题';
+            const subtitle = document.getElementById('subtitle').value || '探索与思考';
+            const quote = document.getElementById('quote').value || '知识是一种财富，学习是一种美德。';
+            const pointsText = document.getElementById('points').value || '核心观点一\n核心观点二\n核心观点三';
+            const notes = document.getElementById('notes').value || '编辑建议：深入思考，勇于探索，持续学习。';
+            
+            // 获取当前日期
+            const date = new Date();
+            const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+            const dateStr = date.toLocaleDateString('zh-CN', dateOptions);
+            
+            // 处理核心要点
+            const pointsList = pointsText.split('\n').filter(point => point.trim() !== '');
+            
+            // 更新极简主义卡片内容
+            document.getElementById('minimalist-date').textContent = dateStr;
+            document.getElementById('minimalist-title').textContent = title;
+            document.getElementById('minimalist-subtitle').textContent = subtitle;
+            document.getElementById('minimalist-quote').textContent = quote;
+            
+            const minimalistPointsContainer = document.getElementById('minimalist-points');
+            minimalistPointsContainer.innerHTML = '';
+            pointsList.forEach(point => {
+                const pointElement = document.createElement('div');
+                pointElement.className = 'point-item';
+                pointElement.textContent = point;
+                minimalistPointsContainer.appendChild(pointElement);
+            });
+            
+            document.getElementById('minimalist-notes').textContent = notes;
+            
+            // 更新优雅复古卡片内容
+            document.getElementById('vintage-date').textContent = dateStr;
+            document.getElementById('vintage-title').textContent = title;
+            document.getElementById('vintage-subtitle').textContent = subtitle;
+            document.getElementById('vintage-quote').textContent = quote;
+            
+            const vintagePointsContainer = document.getElementById('vintage-points');
+            vintagePointsContainer.innerHTML = '';
+            pointsList.forEach(point => {
+                const pointElement = document.createElement('div');
+                pointElement.className = 'point-item';
+                pointElement.textContent = point;
+                vintagePointsContainer.appendChild(pointElement);
+            });
+            
+            document.getElementById('vintage-notes').textContent = notes;
+            
+            // 显示卡片预览
+            cardPreview.classList.remove('hidden');
+            
+            // 隐藏所有卡片
+            minimalistCard.classList.add('hidden');
+            vintageCard.classList.add('hidden');
+            
+            // 显示当前风格卡片
+            if (currentStyle === 'minimalist') {
+                minimalistCard.classList.remove('hidden');
+                setTimeout(() => minimalistCard.classList.add('show'), 100);
+            } else {
+                vintageCard.classList.remove('hidden');
+                setTimeout(() => vintageCard.classList.add('show'), 100);
+            }
+            
+            // 滚动到卡片预览区域
+            cardPreview.scrollIntoView({ behavior: 'smooth' });
+        });
+    </script>
+</body>
+</html>
